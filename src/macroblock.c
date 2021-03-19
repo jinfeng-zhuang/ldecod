@@ -216,6 +216,7 @@ void read_delta_quant(SyntaxElement *currSE, DataPartition *dP, Macroblock *curr
 
   TRACE_STRING_P("mb_qp_delta");
 
+  // 获取 mb_qp_delta
   dP->readSyntaxElement(currMB, currSE, dP);
   currMB->delta_quant = (short) currSE->value1;
   if ((currMB->delta_quant < -(26 + p_Vid->bitdepth_luma_qp_scale/2)) || (currMB->delta_quant > (25 + p_Vid->bitdepth_luma_qp_scale/2)))
@@ -226,7 +227,9 @@ void read_delta_quant(SyntaxElement *currSE, DataPartition *dP, Macroblock *curr
     //error ("mb_qp_delta is out of range", 500);
   }
 
+  // 计算量化值
   currSlice->qp = ((currSlice->qp + currMB->delta_quant + 52 + 2*p_Vid->bitdepth_luma_qp_scale)%(52+p_Vid->bitdepth_luma_qp_scale)) - p_Vid->bitdepth_luma_qp_scale;
+  // 更新量化表
   update_qp(currMB, currSlice->qp);
 }
 

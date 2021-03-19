@@ -79,8 +79,10 @@ static int intra4x4_dc_pred(Macroblock *currMB,
   int block_available_up;
   int block_available_left;  
 
+  // 指向Luma的二维数组指针
   imgpel **mb_pred = currSlice->mb_pred[pl];    
 
+  // 获取左边 A 和上边 B 的 MB 信息
   getNonAffNeighbour(currMB, ioff - 1, joff   , p_Vid->mb_size[IS_LUMA], &pix_a);
   getNonAffNeighbour(currMB, ioff    , joff -1, p_Vid->mb_size[IS_LUMA], &pix_b);
 
@@ -91,6 +93,7 @@ static int intra4x4_dc_pred(Macroblock *currMB,
   }
   else
   {
+    // 第一个 MB 是等于 0 的
     block_available_left = pix_a.available;
     block_available_up   = pix_b.available;
   }
@@ -98,6 +101,7 @@ static int intra4x4_dc_pred(Macroblock *currMB,
   // form predictor pels
   if (block_available_up)
   {
+    // 没看明白，取上面最后一行的 4 个像素
     curpel = &imgY[pix_b.pos_y][pix_b.pos_x];
     s0 += *curpel++;
     s0 += *curpel++;
@@ -107,6 +111,7 @@ static int intra4x4_dc_pred(Macroblock *currMB,
 
   if (block_available_left)
   {
+    // 取左侧最后一竖的 4 个像素
     imgpel **img_pred = &imgY[pix_a.pos_y];
     int pos_x = pix_a.pos_x;
     s0 += *(*(img_pred ++) + pos_x);
@@ -132,10 +137,12 @@ static int intra4x4_dc_pred(Macroblock *currMB,
   }
   else //if (!block_available_up && !block_available_left)
   {
+    // 左上角，默认 128
     // top left corner, nothing to predict from
     s0 = p_Vid->dc_pred_value_comp[pl];
   }
 
+  // 赋值给 4x4 个像素点
   for (j=joff; j < joff + BLOCK_SIZE; ++j)
   {
     // store DC prediction
@@ -212,6 +219,7 @@ static int intra4x4_vert_pred(Macroblock *currMB,    //!< current macroblock
  * \return
  *    DECODING_OK   decoding of intra prediction mode was successful
  *
+ * 水平预测，基于左侧 MB “恢复后” 的像素值进行预测，注意是恢复后
  ***********************************************************************
  */
 static int intra4x4_hor_pred(Macroblock *currMB, 
@@ -798,6 +806,7 @@ int intra_pred_4x4_normal(Macroblock *currMB,    //!< current macroblock
   byte predmode = p_Vid->ipredmode[img_block_y][img_block_x];
   currMB->ipmode_DPCM = predmode; //For residual DPCM
 
+  // 4x4 宏块的预测模式选择
   switch (predmode)
   {
   case DC_PRED:

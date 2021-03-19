@@ -966,12 +966,15 @@ static void read_intra4x4_macroblock_cavlc(Macroblock *currMB, const byte *partM
     currMB->luma_transform_size_8x8_flag = FALSE;
   }
 
+  // 初始化宏块
   //--- init macroblock data ---
   init_macroblock(currMB);
 
+  // 读帧内预测模式
   // intra prediction modes for a macroblock 4x4 **********************************************
   read_ipred_modes(currMB);
 
+  // 读 DCT 系数标志 CBP 和 DCT 系数
   // read CBP and Coeffs  ***************************************************************
   currSlice->read_CBP_and_coeffs_from_NAL (currMB);
 }
@@ -1134,6 +1137,7 @@ static void read_P8x8_macroblock(Macroblock *currMB, DataPartition *dP, SyntaxEl
  ************************************************************************
  * \brief
  *    Get the syntax elements from the NAL
+ * 解析 CAVLC 编码的数据
  ************************************************************************
  */
 static void read_one_macroblock_i_slice_cavlc(Macroblock *currMB)
@@ -1153,6 +1157,7 @@ static void read_one_macroblock_i_slice_cavlc(Macroblock *currMB)
   update_qp(currMB, currSlice->qp);
   currSE.type = SE_MBTYPE;
 
+  // 读 MB 模式
   //  read MB mode *****************************************************************
   dP = &(currSlice->partArr[partMap[SE_MBTYPE]]);
   
@@ -1167,6 +1172,7 @@ static void read_one_macroblock_i_slice_cavlc(Macroblock *currMB)
     currMB->mb_field = (Boolean) currSE.value1;
   }
 
+  // 读 MB TYPE
   //  read MB type
   TRACE_STRING("mb_type");
   dP->readSyntaxElement(currMB, &currSE, dP);

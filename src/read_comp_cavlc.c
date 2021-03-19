@@ -202,6 +202,8 @@ static int predict_nnz_chroma(Macroblock *currMB, int i,int j)
  * \author
  *    Karl Lillevold <karll@real.com>
  *    contributions by James Au <james@ubvideo.com>
+ *
+ * CAVLC 算法应用，这里调用 CAVLC 的各个功能
  ************************************************************************
  */
 void read_coeff_4x4_CAVLC (Macroblock *currMB, 
@@ -1828,6 +1830,7 @@ static void read_CBP_and_coeffs_from_NAL_CAVLC_420(Macroblock *currMB)
   const byte (*pos_scan4x4)[2] = ((p_Vid->structure == FRAME) && (!currMB->mb_field)) ? SNGL_SCAN : FIELD_SCAN;
   const byte *pos_scan_4x4 = pos_scan4x4[0];
 
+  // Code Block Pattern 表示 DCT 系数中 AC 系数是不是 0
   // read CBP if not new intra mode
   if (!IS_I16MB (currMB))
   {
@@ -1957,6 +1960,7 @@ static void read_CBP_and_coeffs_from_NAL_CAVLC_420(Macroblock *currMB)
   InvLevelScale4x4 = intra? currSlice->InvLevelScale4x4_Intra[currSlice->colour_plane_id][qp_rem] : currSlice->InvLevelScale4x4_Inter[currSlice->colour_plane_id][qp_rem];
   InvLevelScale8x8 = intra? currSlice->InvLevelScale8x8_Intra[currSlice->colour_plane_id][qp_rem] : currSlice->InvLevelScale8x8_Inter[currSlice->colour_plane_id][qp_rem];
 
+  // 读 Luma 的 DCT 系数
   // luma coefficients
   if (cbp)
   {

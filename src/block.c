@@ -39,8 +39,10 @@ void itrans4x4(Macroblock *currMB,   //!< current macroblock
   Slice *currSlice = currMB->p_Slice;
   int    **mb_rres = currSlice->mb_rres[pl];
 
+  // DCT逆变换
   inverse4x4(currSlice->cof[pl],mb_rres,joff,ioff);
 
+  // 重构 = 反量化 + 预测值
   sample_reconstruct (&currSlice->mb_rec[pl][joff], &currSlice->mb_pred[pl][joff], &mb_rres[joff], ioff, ioff, BLOCK_SIZE, BLOCK_SIZE, currMB->p_Vid->max_pel_value_comp[pl], DQ_BITS);
 }
 
