@@ -986,10 +986,12 @@ void init_lists_p_slice(Slice *currSlice)
       {
         if ((p_Dpb->fs_ref[i]->frame->used_for_reference) && (!p_Dpb->fs_ref[i]->frame->is_long_term))
         {
+          // 将 DPB 的短期参考帧加到 slice 层，去除 DPB 模块依赖
           currSlice->listX[0][list0idx++] = p_Dpb->fs_ref[i]->frame;
         }
       }
     }
+    // 从大到小排序
     // order list 0 by PicNum
     qsort((void *)currSlice->listX[0], list0idx, sizeof(StorablePicture*), compare_pic_by_pic_num_desc);
     currSlice->listXsize[0] = (char) list0idx;
@@ -1002,10 +1004,12 @@ void init_lists_p_slice(Slice *currSlice)
       {
         if (p_Dpb->fs_ltref[i]->frame->is_long_term)
         {
+          // 将 DPB 的长期参考帧加到 slice 层，去除 DPB 模块依赖
           currSlice->listX[0][list0idx++] = p_Dpb->fs_ltref[i]->frame;
         }
       }
     }
+    // 从小到大排序
     qsort((void *)&currSlice->listX[0][(short) currSlice->listXsize[0]], list0idx - currSlice->listXsize[0], sizeof(StorablePicture*), compare_pic_by_lt_pic_num_asc);
     currSlice->listXsize[0] = (char) list0idx;
   }
@@ -1050,11 +1054,12 @@ void init_lists_p_slice(Slice *currSlice)
   }
   currSlice->listXsize[1] = 0;
 
-
+  // 限制参考帧队列大小
   // set max size
   currSlice->listXsize[0] = (char) imin (currSlice->listXsize[0], currSlice->num_ref_idx_active[LIST_0]);
   currSlice->listXsize[1] = (char) imin (currSlice->listXsize[1], currSlice->num_ref_idx_active[LIST_1]);
 
+  // 设置其他 ENTRY 为非参考帧
   // set the unused list entries to NULL
   for (i=currSlice->listXsize[0]; i< (MAX_LIST_SIZE) ; i++)
   {
@@ -1468,6 +1473,7 @@ static void reorder_long_term(Slice *currSlice, StorablePicture **RefPicListX, i
  ************************************************************************
  * \brief
  *    Reordering process for reference picture lists
+ *    重排序
  *
  ************************************************************************
  */
@@ -1497,11 +1503,14 @@ void reorder_ref_pic_list(Slice *currSlice, int cur_list)
 
   picNumLXPred = currPicNum;
 
+  // 3 = 结束指令
   for (i=0; modification_of_pic_nums_idc[i]!=3; i++)
   {
     if (modification_of_pic_nums_idc[i]>3)
       error ("Invalid modification_of_pic_nums_idc command", 500);
 
+    // 0 = 短期参考队列 -x
+    // 1 = 短期参考队列 +x
     if (modification_of_pic_nums_idc[i] < 2)
     {
       if (modification_of_pic_nums_idc[i] == 0)
@@ -1513,6 +1522,7 @@ void reorder_ref_pic_list(Slice *currSlice, int cur_list)
       }
       else // (modification_of_pic_nums_idc[i] == 1)
       {
+        // 将 picNumLXNoWrap 限制在 maxPicNum 范围内，这个值才是合法的
         if( picNumLXPred + ( abs_diff_pic_num_minus1[i] + 1 )  >=  maxPicNum )
           picNumLXNoWrap = picNumLXPred + ( abs_diff_pic_num_minus1[i] + 1 ) - maxPicNum;
         else
@@ -1520,6 +1530,10 @@ void reorder_ref_pic_list(Slice *currSlice, int cur_list)
       }
       picNumLXPred = picNumLXNoWrap;
 
+      //
+      // picNumLX 不能比 currPicNum 大，实例：
+      // 14 15 0 1 2 => -2 -1 0 1 2
+      //
       if( picNumLXNoWrap > currPicNum )
         picNumLX = picNumLXNoWrap - maxPicNum;
       else
@@ -1531,6 +1545,8 @@ void reorder_ref_pic_list(Slice *currSlice, int cur_list)
       reorder_short_term(currSlice, cur_list, num_ref_idx_lX_active_minus1, picNumLX, &refIdxLX);
 #endif
     }
+
+    // 2 = 长期参考帧重排序指令
     else //(modification_of_pic_nums_idc[i] == 2)
     {
 #if (MVC_EXTENSION_ENABLE)
@@ -1759,6 +1775,8 @@ static void adaptive_memory_management(DecodedPictureBuffer *p_Dpb, StorablePict
  * \param p
  *    Picture to be stored
  *
+ * 将解码后的图像指针放到 DPB 中，如果是参考帧，放到参考队列中
+ * Slice 在解码之前会将参考队列信息拷贝到 Slice 层
  ************************************************************************
  */
 void store_picture_in_dpb(DecodedPictureBuffer *p_Dpb, StorablePicture* p)
@@ -1878,6 +1896,7 @@ void store_picture_in_dpb(DecodedPictureBuffer *p_Dpb, StorablePicture* p)
       }
     }
   }
+  // 存放到 DPB 中
   // store at end of buffer
   insert_picture_in_dpb(p_Vid, p_Dpb->fs[p_Dpb->used_size],p);
 
@@ -1901,7 +1920,10 @@ void store_picture_in_dpb(DecodedPictureBuffer *p_Dpb, StorablePicture* p)
   if(p_Vid->conceal_mode != 0)
     p_Vid->pocs_in_dpb[p_Dpb->used_size-1] = p->poc;
 
+  // 更新短期参考帧队列
   update_ref_list(p_Dpb);
+
+  // 更新长期参考帧队列
   update_ltref_list(p_Dpb);
 
   check_num_ref(p_Dpb);

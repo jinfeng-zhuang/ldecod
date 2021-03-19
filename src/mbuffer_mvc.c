@@ -44,11 +44,14 @@ void reorder_short_term(Slice *currSlice, int cur_list, int num_ref_idx_lX_activ
 
   picLX = get_short_term_pic(currSlice, currSlice->p_Dpb, picNumLX);
 
+  // 倒叙遍历的方式，先将数组从要修改的位置开始整体右移
   for( cIdx = num_ref_idx_lX_active_minus1+1; cIdx > *refIdxLX; cIdx-- )
     RefPicListX[ cIdx ] = RefPicListX[ cIdx - 1];
 
+  // 移动 picLX 到新的位置
   RefPicListX[ (*refIdxLX)++ ] = picLX;
 
+  // 整理：这后面看起来是多余的 x[i++] = x[i++] 的意思
   nIdx = *refIdxLX;
 
   for( cIdx = *refIdxLX; cIdx <= num_ref_idx_lX_active_minus1+1; cIdx++ )
@@ -77,11 +80,14 @@ void reorder_long_term(Slice *currSlice, StorablePicture **RefPicListX, int num_
 
   picLX = get_long_term_pic(currSlice, currSlice->p_Dpb, LongTermPicNum);
 
+  // 倒序遍历
   for( cIdx = num_ref_idx_lX_active_minus1+1; cIdx > *refIdxLX; cIdx-- )
     RefPicListX[ cIdx ] = RefPicListX[ cIdx - 1];
 
+  // 移动位置
   RefPicListX[ (*refIdxLX)++ ] = picLX;
 
+  // 整理
   nIdx = *refIdxLX;
 
   for( cIdx = *refIdxLX; cIdx <= num_ref_idx_lX_active_minus1+1; cIdx++ )

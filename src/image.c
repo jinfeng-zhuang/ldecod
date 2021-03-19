@@ -1245,6 +1245,7 @@ void reorder_lists(Slice *currSlice)
 
   if ((currSlice->slice_type != I_SLICE)&&(currSlice->slice_type != SI_SLICE))
   {
+    // 必须有 ref_pic_list_reordering_flag 标记才会重排序
     if (currSlice->ref_pic_list_reordering_flag[LIST_0])
     {
       reorder_ref_pic_list(currSlice, LIST_0);
