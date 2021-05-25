@@ -23,7 +23,7 @@
 #define DECOUTPUT_TEST      0
 
 #define PRINT_OUTPUT_POC    0
-#define BITSTREAM_FILENAME  "test.264"
+#define BITSTREAM_FILENAME  "ldecod/simple.264"
 #define DECRECON_FILENAME   "test_dec.yuv"
 #define ENCRECON_FILENAME   "test_rec.yuv"
 #define FCFR_DEBUG_FILENAME "fcfr_dec_rpu_stats.txt"

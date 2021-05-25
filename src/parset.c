@@ -564,11 +564,13 @@ void ProcessSPS (VideoParameters *p_Vid, NALU_t *nalu)
   DataPartition *dp = AllocPartition(1);
   seq_parameter_set_rbsp_t *sps = AllocSPS();
 
+  // copy from nalu to data partition
   memcpy (dp->bitstream->streamBuffer, &nalu->buf[1], nalu->len-1);
   dp->bitstream->code_len = dp->bitstream->bitstream_length = RBSPtoSODB (dp->bitstream->streamBuffer, nalu->len-1);
   dp->bitstream->ei_flag = 0;
   dp->bitstream->read_len = dp->bitstream->frame_bitoffset = 0;
 
+  // parse SPS from bitstream
   InterpretSPS (p_Vid, dp, sps);
 #if (MVC_EXTENSION_ENABLE)
   get_max_dec_frame_buf_size(sps);
@@ -592,6 +594,7 @@ void ProcessSPS (VideoParameters *p_Vid, NALU_t *nalu)
       }
     }
     // SPSConsistencyCheck (pps);
+    // copy sps to VideoParameters.SPS[32]
     MakeSPSavailable (p_Vid, sps->seq_parameter_set_id, sps);
 #if (MVC_EXTENSION_ENABLE)
     if (p_Vid->profile_idc < (int) sps->profile_idc)
@@ -612,6 +615,7 @@ void ProcessSPS (VideoParameters *p_Vid, NALU_t *nalu)
     }
   }
 
+  // so data partition & sps allocation use for temp, why ?
   FreePartition (dp, 1);
   FreeSPS (sps);
 }

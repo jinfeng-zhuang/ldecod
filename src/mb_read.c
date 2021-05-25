@@ -369,7 +369,7 @@ static void read_ipred_4x4_modes(Macroblock *currMB)
       {
         bx = ((b8 & 1) << 1) + i;
         bi = currMB->block_x + bx;
-        //get from stream
+        //get from stream: mb_pred(mb_type).prev_intra4x4_pred_mode_flag
         if (p_Vid->active_pps->entropy_coding_mode_flag == (Boolean) CAVLC || dP->bitstream->ei_flag)
           readSyntaxElement_Intra4x4PredictionMode(&currSE, dP->bitstream);
         else
@@ -405,6 +405,7 @@ static void read_ipred_4x4_modes(Macroblock *currMB)
         upIntraPredMode            = (top_block.available  &&(ts == 0)) ? currSlice->ipredmode[top_block.pos_y ][top_block.pos_x ] : -1;
         leftIntraPredMode          = (left_block.available &&(ls == 0)) ? currSlice->ipredmode[left_block.pos_y][left_block.pos_x] : -1;
 
+        // select minimum pred mode or left-top: DC
         mostProbableIntraPredMode  = (upIntraPredMode < 0 || leftIntraPredMode < 0) ? DC_PRED : upIntraPredMode < leftIntraPredMode ? upIntraPredMode : leftIntraPredMode;
 
         currSlice->ipredmode[bj][bi] = (byte) ((currSE.value1 == -1) ? mostProbableIntraPredMode : currSE.value1 + (currSE.value1 >= mostProbableIntraPredMode));
@@ -966,7 +967,7 @@ static void read_intra4x4_macroblock_cavlc(Macroblock *currMB, const byte *partM
     currMB->luma_transform_size_8x8_flag = FALSE;
   }
 
-  // 初始化宏块
+  // 初始化宏块 reset and set function pointer
   //--- init macroblock data ---
   init_macroblock(currMB);
 
@@ -1164,6 +1165,7 @@ static void read_one_macroblock_i_slice_cavlc(Macroblock *currMB)
   currSE.mapping = linfo_ue;
 
   // read MB aff
+  // ref: slice_data.mb_field_decoding_flag
   if (currSlice->mb_aff_frame_flag && (mb_nr&0x01)==0)
   {
     TRACE_STRING("mb_field_decoding_flag");
@@ -1192,6 +1194,7 @@ static void read_one_macroblock_i_slice_cavlc(Macroblock *currMB)
   //init NoMbPartLessThan8x8Flag
   currMB->NoMbPartLessThan8x8Flag = TRUE;
 
+  // the reason of mb type read in slice layer
   if(currMB->mb_type == IPCM)
   {
     read_i_pcm_macroblock(currMB, partMap);

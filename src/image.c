@@ -199,6 +199,7 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
   if (p_Vid->recovery_point)
     p_Vid->recovery_frame_num = (currSlice->frame_num + p_Vid->recovery_frame_cnt) % p_Vid->max_frame_num;
 
+  // recovery point, if reference picture miss ?
   if (currSlice->idr_flag)
     p_Vid->recovery_frame_num = currSlice->frame_num;
 
@@ -247,7 +248,7 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
 
   //p_Vid->num_dec_mb = 0;
 
-  //calculate POC
+  //calculate POC (important)
   decode_poc(p_Vid, currSlice);
 
   if (p_Vid->recovery_frame_num == (int) currSlice->frame_num && p_Vid->recovery_poc == 0x7fffffff)
@@ -323,7 +324,7 @@ static void init_picture(VideoParameters *p_Vid, Slice *currSlice, InputParamete
     p_Vid->type = P_SLICE;  // concealed element
   }
 
-  // CAVLC init
+  // CAVLC init, specified by PPS
   if (p_Vid->active_pps->entropy_coding_mode_flag == (Boolean) CAVLC)
   {
     memset(p_Vid->nz_coeff[0][0][0], -1, p_Vid->PicSizeInMbs * 48 *sizeof(byte)); // 3 * 4 * 4
